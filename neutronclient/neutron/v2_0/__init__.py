@@ -340,6 +340,8 @@ class NeutronCommand(command.OpenStackCommand):
     log = logging.getLogger(__name__ + '.NeutronCommand')
     values_specs = []
     json_indent = None
+    resource = None
+    shadow_resource = None
 
     def __init__(self, app, app_args):
         super(NeutronCommand, self).__init__(app, app_args)
@@ -348,6 +350,12 @@ class NeutronCommand(command.OpenStackCommand):
 
         #if hasattr(self, 'formatters'):
             #self.formatters['table'] = TableFormater()
+
+    @property
+    def command_resource(self):
+        if self.shadow_resource:
+            return self.shadow_resource
+        return self.resource
 
     def get_client(self):
         return self.app.client_manager.neutron
@@ -394,7 +402,6 @@ class CreateCommand(NeutronCommand, show.ShowOne):
     """
 
     api = 'network'
-    resource = None
     log = None
 
     def get_parser(self, prog_name):
@@ -418,7 +425,7 @@ class CreateCommand(NeutronCommand, show.ShowOne):
         body = self.args2body(parsed_args)
         body[self.resource].update(_extra_values)
         obj_creator = getattr(neutron_client,
-                              "create_%s" % self.resource)
+                              "create_%s" % self.command_resource)
         data = obj_creator(body)
         self.format_output_data(data)
         info = self.resource in data and data[self.resource] or None
@@ -435,7 +442,6 @@ class UpdateCommand(NeutronCommand):
     """
 
     api = 'network'
-    resource = None
     log = None
     allow_names = True
 
@@ -469,7 +475,7 @@ class UpdateCommand(NeutronCommand):
             _id = find_resourceid_by_id(
                 neutron_client, self.resource, parsed_args.id)
         obj_updator = getattr(neutron_client,
-                              "update_%s" % self.resource)
+                              "update_%s" % self.command_resource)
         obj_updator(_id, body)
         print((_('Updated %(resource)s: %(id)s') %
                {'id': parsed_args.id, 'resource': self.resource}),
@@ -483,7 +489,6 @@ class DeleteCommand(NeutronCommand):
     """
 
     api = 'network'
-    resource = None
     log = None
     allow_names = True
 
@@ -503,7 +508,7 @@ class DeleteCommand(NeutronCommand):
         neutron_client = self.get_client()
         neutron_client.format = parsed_args.request_format
         obj_deleter = getattr(neutron_client,
-                              "delete_%s" % self.resource)
+                              "delete_%s" % self.command_resource)
         if self.allow_names:
             _id = find_resourceid_by_name_or_id(neutron_client, self.resource,
                                                 parsed_args.id)
@@ -523,7 +528,6 @@ class ListCommand(NeutronCommand, lister.Lister):
     """
 
     api = 'network'
-    resource = None
     log = None
     _formatters = {}
     list_columns = []
@@ -550,7 +554,8 @@ class ListCommand(NeutronCommand, lister.Lister):
         return search_opts
 
     def call_server(self, neutron_client, search_opts, parsed_args):
-        resource_plural = _get_resource_plural(self.resource, neutron_client)
+        resource_plural = _get_resource_plural(self.command_resource,
+                                               neutron_client)
         obj_lister = getattr(neutron_client, "list_%s" % resource_plural)
         data = obj_lister(**search_opts)
         return data
@@ -622,7 +627,6 @@ class ShowCommand(NeutronCommand, show.ShowOne):
     """
 
     api = 'network'
-    resource = None
     log = None
     allow_names = True
 
@@ -654,7 +658,8 @@ class ShowCommand(NeutronCommand, show.ShowOne):
         else:
             _id = parsed_args.id
 
-        obj_shower = getattr(neutron_client, "show_%s" % self.resource)
+        obj_shower = getattr(neutron_client, "show_%s" %
+                             self.command_resource)
         data = obj_shower(_id, **params)
         self.format_output_data(data)
         resource = data[self.resource]
