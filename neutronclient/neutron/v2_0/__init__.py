@@ -43,7 +43,10 @@ def _get_resource_plural(resource, client):
     return resource + 's'
 
 
-def find_resourceid_by_id(client, resource, resource_id, command_resource, parent_id=None):
+def find_resourceid_by_id(client, resource, resource_id, command_resource=None,
+                          parent_id=None):
+    if not command_resource:
+        command_resource = resource
     command_resource_plural = _get_resource_plural(command_resource, client)
     resource_plural = _get_resource_plural(resource, client)
     obj_lister = getattr(client, "list_%s" % command_resource_plural)
@@ -65,7 +68,10 @@ def find_resourceid_by_id(client, resource, resource_id, command_resource, paren
         message=not_found_message, status_code=404)
 
 
-def _find_resourceid_by_name(client, resource, name, command_resource, parent_id=None):
+def _find_resourceid_by_name(client, resource, name, command_resource=None,
+                             parent_id=None):
+    if not command_resource:
+        command_resource = resource
     command_resource_plural = _get_resource_plural(command_resource, client)
     resource_plural = _get_resource_plural(resource, client)
     obj_lister = getattr(client, "list_%s" % command_resource_plural)
@@ -89,11 +95,16 @@ def _find_resourceid_by_name(client, resource, name, command_resource, parent_id
         return info[0]['id']
 
 
-def find_resourceid_by_name_or_id(client, resource, name_or_id, command_resource, parent_id=None):
+def find_resourceid_by_name_or_id(client, resource, name_or_id,
+                                  command_resource=None, parent_id=None):
+    if not command_resource:
+        command_resource = resource
     try:
-        return find_resourceid_by_id(client, resource, name_or_id, command_resource, parent_id)
+        return find_resourceid_by_id(client, resource, name_or_id,
+                                     command_resource, parent_id)
     except exceptions.NeutronClientException:
-        return _find_resourceid_by_name(client, resource, name_or_id, command_resource, parent_id)
+        return _find_resourceid_by_name(client, resource, name_or_id,
+                                        command_resource, parent_id)
 
 
 def add_show_list_common_argument(parser):
@@ -484,13 +495,16 @@ class UpdateCommand(NeutronCommand):
             body[self.resource] = _extra_values
         if not body[self.resource]:
             raise exceptions.CommandError(
-                _("Must specify new values to update %s") % self.command_resource)
+                _("Must specify new values to update %s") %
+                self.command_resource)
         if self.allow_names:
             _id = find_resourceid_by_name_or_id(
-                neutron_client, self.resource, parsed_args.id, self.command_resource, self.parent_id)
+                neutron_client, self.resource, parsed_args.id,
+                self.command_resource, self.parent_id)
         else:
             _id = find_resourceid_by_id(
-                neutron_client, self.resource, parsed_args.id, self.command_resource, self.parent_id)
+                neutron_client, self.resource, parsed_args.id,
+                self.command_resource, self.parent_id)
         obj_updator = getattr(neutron_client,
                               "update_%s" % self.command_resource)
         if self.parent_id:
@@ -534,7 +548,9 @@ class DeleteCommand(NeutronCommand):
         if self.allow_names:
             _id = find_resourceid_by_name_or_id(neutron_client,
                                                 self.resource,
-                                                parsed_args.id, self.command_resource, self.parent_id)
+                                                parsed_args.id,
+                                                self.command_resource,
+                                                self.parent_id)
         else:
             _id = parsed_args.id
 
@@ -685,8 +701,11 @@ class ShowCommand(NeutronCommand, show.ShowOne):
         if parsed_args.fields:
             params = {'fields': parsed_args.fields}
         if self.allow_names:
-            _id = find_resourceid_by_name_or_id(neutron_client, self.resource,
-                                                parsed_args.id, self.command_resource, self.parent_id)
+            _id = find_resourceid_by_name_or_id(neutron_client,
+                                                self.resource,
+                                                parsed_args.id,
+                                                self.command_resource,
+                                                self.parent_id)
         else:
             _id = parsed_args.id
 

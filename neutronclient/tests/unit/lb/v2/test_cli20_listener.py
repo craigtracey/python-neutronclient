@@ -26,90 +26,111 @@ class CLITestV20LbListenerJSON(test_cli20.CLITestV20Base):
 
     def test_create_listener_with_mandatory_params(self):
         """lbaas-listener-create with mandatory params only."""
-        resource = 'lbaas_listener'
+        resource = 'listener'
+        cmd_resource = 'lbaas_listener'
         cmd = listener.CreateListener(test_cli20.MyApp(sys.stdout), None)
         my_id = 'my-id'
         default_pool_id = 'default-pool-id'
         protocol = 'TCP'
         protocol_port = '80'
-        args = ['--protocol', protocol, '--protocol-port', protocol_port,
-                '--default-pool-id', default_pool_id]
-        position_names = ['protocol', 'protocol_port',
-                          'default_pool_id', 'admin_state_up']
+        args = ['--protocol', protocol, '--protocol-port', protocol_port]
+        position_names = ['protocol', 'protocol_port']
         position_values = [protocol, protocol_port, default_pool_id, True]
         self._test_create_resource(resource, cmd, '', my_id, args,
-                                   position_names, position_values)
+                                   position_names, position_values,
+                                   cmd_resource=cmd_resource)
 
     def test_create_listener_with_all_params(self):
         """lbaas-listener-create with all params set."""
-        resource = 'lbaas_listener'
+        resource = 'listener'
+        cmd_resource = 'lbaas_listener'
         cmd = listener.CreateListener(test_cli20.MyApp(sys.stdout), None)
         my_id = 'my-id'
+        loadbalancer_id = 'loadbalancer-id'
         protocol = 'TCP'
         protocol_port = '80'
         default_pool_id = 'lbaas-pool-id'
         args = ['--admin-state-down', '--default-pool-id', default_pool_id,
-                '--protocol', protocol, '--protocol-port', protocol_port]
+                '--protocol', protocol, '--protocol-port', protocol_port,
+                '--loadbalancer-id', loadbalancer_id]
         position_names = ['admin_state_up', 'default_pool_id',
-                          'protocol', 'protocol_port']
-        position_values = [False, default_pool_id, protocol, protocol_port]
+                          'protocol', 'protocol_port', 'loadbalancer_id']
+        position_values = [False, default_pool_id, protocol, protocol_port,
+                           loadbalancer_id]
         self._test_create_resource(resource, cmd, '', my_id, args,
-                                   position_names, position_values)
+                                   position_names, position_values,
+                                   cmd_resource=cmd_resource)
 
     def test_list_listeners(self):
         """lbaas-listener-list."""
-        resources = 'lbaas_listeners'
+        resources = 'listeners'
+        cmd_resources = 'lbaas_listeners'
         cmd = listener.ListListener(test_cli20.MyApp(sys.stdout), None)
-        self._test_list_resources(resources, cmd, True)
+        self._test_list_resources(resources, cmd, True,
+                                  cmd_resources=cmd_resources)
 
     def test_list_listeners_pagination(self):
         """lbaas-listener-list with pagination."""
-        resources = 'lbaas_listeners'
+        resources = 'listeners'
+        cmd_resources = 'lbaas_listeners'
         cmd = listener.ListListener(test_cli20.MyApp(sys.stdout), None)
-        self._test_list_resources_with_pagination(resources, cmd)
+        self._test_list_resources_with_pagination(resources, cmd,
+                                                  cmd_resources=cmd_resources)
 
     def test_list_listeners_sort(self):
         """lbaas-listener-list --sort-key id --sort-key asc."""
-        resources = 'lbaas_listeners'
+        resources = 'listeners'
+        cmd_resources = 'lbaas_listeners'
         cmd = listener.ListListener(test_cli20.MyApp(sys.stdout), None)
-        self._test_list_resources(resources, cmd, True)
+        self._test_list_resources(resources, cmd, True,
+                                  cmd_resources=cmd_resources)
 
     def test_list_listeners_limit(self):
         """lbaas-listener-list -P."""
-        resources = 'lbaas_listeners'
+        resources = 'listeners'
+        cmd_resources = 'lbaas_listeners'
         cmd = listener.ListListener(test_cli20.MyApp(sys.stdout), None)
-        self._test_list_resources(resources, cmd, page_size=1000)
+        self._test_list_resources(resources, cmd, page_size=1000,
+                                  cmd_resources=cmd_resources)
 
     def test_show_listener_id(self):
         """lbaas-listener-show test_id."""
-        resource = 'lbaas_listener'
+        resource = 'listener'
+        cmd_resource = 'lbaas_listener'
         cmd = listener.ShowListener(test_cli20.MyApp(sys.stdout), None)
         args = ['--fields', 'id', self.test_id]
-        self._test_show_resource(resource, cmd, self.test_id, args, ['id'])
+        self._test_show_resource(resource, cmd, self.test_id, args, ['id'],
+                                 cmd_resource=cmd_resource)
 
     def test_show_listener_id_name(self):
         """lbaas-listener-show."""
-        resource = 'lbaas_listener'
+        resource = 'listener'
+        cmd_resource = 'lbaas_listener'
         cmd = listener.ShowListener(test_cli20.MyApp(sys.stdout), None)
         args = ['--fields', 'id', '--fields', 'name', self.test_id]
         self._test_show_resource(resource, cmd, self.test_id,
-                                 args, ['id', 'name'])
+                                 args, ['id', 'name'],
+                                 cmd_resource=cmd_resource)
 
     def test_update_listener(self):
         """lbaas-listener-update myid --name newname."""
-        resource = 'lbaas_listener'
+        resource = 'listener'
+        cmd_resource = 'lbaas_listener'
         cmd = listener.UpdateListener(test_cli20.MyApp(sys.stdout), None)
         self._test_update_resource(resource, cmd, 'myid',
                                    ['myid', '--name', 'newname'],
-                                   {'name': 'newname', })
+                                   {'name': 'newname', },
+                                   cmd_resource=cmd_resource)
 
     def test_delete_listener(self):
         """lbaas-listener-delete my-id."""
-        resource = 'lbaas_listener'
+        resource = 'listener'
+        cmd_resource = 'lbaas_listener'
         cmd = listener.DeleteListener(test_cli20.MyApp(sys.stdout), None)
         my_id = 'my-id'
         args = [my_id]
-        self._test_delete_resource(resource, cmd, my_id, args)
+        self._test_delete_resource(resource, cmd, my_id, args,
+                                   cmd_resource=cmd_resource)
 
 
 class CLITestV20LbListenerXML(CLITestV20LbListenerJSON):

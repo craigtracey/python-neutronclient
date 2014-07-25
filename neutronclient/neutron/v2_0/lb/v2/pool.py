@@ -16,20 +16,20 @@
 #    under the License.
 #
 
-import argparse
 import logging
 
 from neutronclient.neutron import v2_0 as neutronV20
 from neutronclient.openstack.common.gettextutils import _
 
-def _verify_and_parse_session_persistence(parsed_args):
+
+def _parse_persistence(parsed_args):
     persistence = None
     if parsed_args.session_persistence:
         parts = parsed_args.session_persistence.split(':')
         if not len(parts) == 2:
-           raise Exception('Incorrect --session-persistence format.'
-                         ' Format is <TYPE>:<VALUE>')
-        persistence = {'type': parts[0], 'cookie': parts[1]}
+            raise Exception('Incorrect --session-persistence format.'
+                            ' Format is <TYPE>:<VALUE>')
+        persistence = {'type': parts[0], 'cookie_name': parts[1]}
     return persistence
 
 
@@ -82,7 +82,7 @@ class CreatePool(neutronV20.CreateCommand):
             'name', metavar='NAME',
             help=_('The name of the pool'))
         parser.add_argument(
-            '--session-persistence', metavar='TYPE',
+            '--session-persistence', metavar='TYPE:VALUE',
             help=_('The type of session persistence to use.'))
         parser.add_argument(
             '--lb-algorithm',
@@ -97,18 +97,19 @@ class CreatePool(neutronV20.CreateCommand):
             help=_('Protocol for balancing'))
 
     def args2body(self, parsed_args):
-        _persistence = _verify_and_parse_session_persistence(parsed_args)
+        if parsed_args.session_persistence:
+            parsed_args.session_persistence = _parse_persistence(parsed_args)
         body = {
             self.resource: {
                 'name': parsed_args.name,
                 'admin_state_up': parsed_args.admin_state,
                 'protocol': parsed_args.protocol,
                 'lb_algorithm': parsed_args.lb_algorithm,
-                'session_persistence ': _persistence
             },
         }
         neutronV20.update_dict(parsed_args, body[self.resource],
-                               ['description', 'healthmonitor_id'])
+                               ['description', 'healthmonitor_id'
+                                'session_persistence'])
         return body
 
 

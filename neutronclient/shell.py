@@ -42,9 +42,9 @@ from neutronclient.neutron.v2_0.fw import firewallrule
 from neutronclient.neutron.v2_0.lb import healthmonitor as lb_healthmonitor
 from neutronclient.neutron.v2_0.lb import member as lb_member
 from neutronclient.neutron.v2_0.lb import pool as lb_pool
+from neutronclient.neutron.v2_0.lb.v2 import healthmonitor as lbaas_healthmon
 from neutronclient.neutron.v2_0.lb.v2 import listener as lbaas_listener
 from neutronclient.neutron.v2_0.lb.v2 import loadbalancer as lbaas_loadbalancer
-from neutronclient.neutron.v2_0.lb.v2 import healthmonitor as lbaas_healthmonitor
 from neutronclient.neutron.v2_0.lb.v2 import member as lbaas_member
 from neutronclient.neutron.v2_0.lb.v2 import pool as lbaas_pool
 from neutronclient.neutron.v2_0.lb import vip as lb_vip
@@ -165,19 +165,16 @@ COMMAND_V2 = {
     'lbaas-pool-create': lbaas_pool.CreatePool,
     'lbaas-pool-update': lbaas_pool.UpdatePool,
     'lbaas-pool-delete': lbaas_pool.DeletePool,
-
-    'lbaas-healthmonitor-list': lbaas_healthmonitor.ListHealthMonitor,
-    'lbaas-healthmonitor-show': lbaas_healthmonitor.ShowHealthMonitor,
-    'lbaas-healthmonitor-create': lbaas_healthmonitor.CreateHealthMonitor,
-    'lbaas-healthmonitor-update': lbaas_healthmonitor.UpdateHealthMonitor,
-    'lbaas-healthmonitor-delete': lbaas_healthmonitor.DeleteHealthMonitor,
-
+    'lbaas-healthmonitor-list': lbaas_healthmon.ListHealthMonitor,
+    'lbaas-healthmonitor-show': lbaas_healthmon.ShowHealthMonitor,
+    'lbaas-healthmonitor-create': lbaas_healthmon.CreateHealthMonitor,
+    'lbaas-healthmonitor-update': lbaas_healthmon.UpdateHealthMonitor,
+    'lbaas-healthmonitor-delete': lbaas_healthmon.DeleteHealthMonitor,
     'lbaas-member-list': lbaas_member.ListMember,
     'lbaas-member-show': lbaas_member.ShowMember,
     'lbaas-member-create': lbaas_member.CreateMember,
     'lbaas-member-update': lbaas_member.UpdateMember,
     'lbaas-member-delete': lbaas_member.DeleteMember,
-
     'lb-vip-list': lb_vip.ListVip,
     'lb-vip-show': lb_vip.ShowVip,
     'lb-vip-create': lb_vip.CreateVip,

@@ -223,7 +223,8 @@ class Client(object):
     L3_AGENTS = '/l3-agents'
     LOADBALANCER_POOLS = '/loadbalancer-pools'
     LOADBALANCER_AGENT = '/loadbalancer-agent'
-    LBAAS_MEMBERS = '/members'
+    LBAAS_MEMBER_SUFFIX = '/member/%s'
+    LBAAS_MEMBERS_SUFFIX = '/members'
     firewall_rules_path = "/fw/firewall_rules"
     firewall_rule_path = "/fw/firewall_rules/%s"
     firewall_policies_path = "/fw/firewall_policies"
@@ -753,37 +754,39 @@ class Client(object):
     @APIParamsCall
     def delete_lbaas_healthmonitor(self, lbaas_healthmonitor):
         """Deletes the specified lbaas_healthmonitor."""
-        return self.delete(self.lbaas_healthmonitor_path % (lbaas_healthmonitor))
-
+        return self.delete(self.lbaas_healthmonitor_path %
+                           (lbaas_healthmonitor))
 
     @APIParamsCall
     def list_lbaas_members(self, lbaas_pool, retrieve_all=True, **_params):
         """Fetches a list of all lbaas_members for a tenant."""
-        return self.list('members', (self.lbaas_pool_path + self.LBAAS_MEMBERS) % lbaas_pool,
-                         retrieve_all, params=_params)
+        return self.list('members',
+                         (self.lbaas_pool_path + self.LBAAS_MEMBERS_SUFFIX) %
+                         lbaas_pool, retrieve_all, params=_params)
 
     @APIParamsCall
     def show_lbaas_member(self, lbaas_member, lbaas_pool, **_params):
         """Fetches information of a certain lbaas_member."""
-        return self.get((self.lbaas_pool_path + self.LBAAS_MEMBERS + '/%s') %
-                         (lbaas_pool, lbaas_member), params=_params)
+        return self.get((self.lbaas_pool_path + self.LBAAS_MEMBER_SUFFIX) %
+                        (lbaas_pool, lbaas_member), params=_params)
 
     @APIParamsCall
     def create_lbaas_member(self, body=None, parent_id=None):
         """Creates an lbaas_member."""
-        return self.post((self.lbaas_pool_path + self.LBAAS_MEMBERS) % parent_id,
-                        body=body)
+        return self.post((self.lbaas_pool_path + self.LBAAS_MEMBERS_SUFFIX) %
+                         parent_id, body=body)
 
     @APIParamsCall
     def update_lbaas_member(self, lbaas_member, lbaas_pool, body=None):
         """Updates a lbaas_healthmonitor."""
-        return self.put((self.lbaas_pool_path + self.LBAAS_MEMBERS + '/%s') %
-                         (lbaas_pool, lbaas_member), body=body)
+        return self.put((self.lbaas_pool_path + self.LBAAS_MEMBER_SUFFIX) %
+                        (lbaas_pool, lbaas_member), body=body)
 
     @APIParamsCall
     def delete_lbaas_member(self, lbaas_member, lbaas_pool):
         """Deletes the specified lbaas_member."""
-        return self.delete((self.lbaas_pool_path + self.LBAAS_MEMBERS + '/%s') % (lbaas_pool, lbaas_member))
+        return self.delete((self.lbaas_pool_path + self.LBAAS_MEMBER_SUFFIX) %
+                           (lbaas_pool, lbaas_member))
 
     @APIParamsCall
     def list_vips(self, retrieve_all=True, **_params):
@@ -1022,12 +1025,6 @@ class Client(object):
     def list_dhcp_agent_hosting_networks(self, network, **_params):
         """Fetches a list of dhcp agents hosting a network."""
         return self.get((self.network_path + self.DHCP_AGENTS) % network,
-                        params=_params)
-
-    @APIParamsCall
-    def list_lbaas_pool_members(self, lbaas_pool, **_params):
-        """Fetches a list of dhcp agents hosting a network."""
-        return self.get((self.lbaas_pool_path + self.LBAAS_MEMBER) % lbaaas_pool,
                         params=_params)
 
     @APIParamsCall
@@ -1363,7 +1360,7 @@ class Client(object):
         self.version = '2.0'
         self.format = 'json'
         self.action_prefix = "/v%s" % (self.version)
-        self.retries = 0
+        self.retries = 3
         self.retry_interval = 1
 
     def _handle_fault_response(self, status_code, response_body):

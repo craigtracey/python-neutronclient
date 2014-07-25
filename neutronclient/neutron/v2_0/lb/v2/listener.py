@@ -53,9 +53,12 @@ class CreateListener(neutronV20.CreateCommand):
             help=_('Set admin state up to false'))
         parser.add_argument(
             '--loadbalancer-id',
-            dest='loadbalancer_id',
-            metavar='LOADBALANCER', required=True,
+            metavar='LOADBALANCER',
             help=_('ID of the load balancer'))
+        parser.add_argument(
+            '--default-pool-id',
+            metavar='POOL',
+            help=_('The default pool ID to use'))
         parser.add_argument(
             '--protocol',
             required=True,
@@ -66,21 +69,17 @@ class CreateListener(neutronV20.CreateCommand):
             dest='protocol_port', required=True,
             metavar='PORT',
             help=_('Protocol port for the listener'))
-        parser.add_argument(
-            '--default-pool-id',
-            dest='default_pool_id', metavar='POOL',
-            required=True, help=_('The default pool ID to use'))
 
     def args2body(self, parsed_args):
         body = {
             self.resource: {
-                'default_pool_id': parsed_args.default_pool_id,
                 'protocol': parsed_args.protocol,
                 'protocol_port': parsed_args.protocol_port,
                 'admin_state_up': parsed_args.admin_state,
-		        'loadbalancer_id': parsed_args.loadbalancer_id
             },
         }
+        neutronV20.update_dict(parsed_args, body[self.resource],
+                               ['loadbalancer_id', 'default_pool_id'])
         return body
 
 

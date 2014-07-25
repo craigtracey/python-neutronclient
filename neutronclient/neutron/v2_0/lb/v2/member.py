@@ -21,6 +21,7 @@ import logging
 from neutronclient.neutron import v2_0 as neutronV20
 from neutronclient.openstack.common.gettextutils import _
 
+
 def _add_pool_id_arg(self, parser):
     parser.add_argument(
         'pool_id', metavar='POOL',
@@ -28,13 +29,14 @@ def _add_pool_id_arg(self, parser):
 
 
 def _set_parent_id(self, parsed_args):
-    self.parent_id = _get_pool_id(self, parsed_args) #parsed_args.pool_id
+    self.parent_id = _get_pool_id(self, parsed_args)
     return super(self.__class__, self).get_data(parsed_args)
 
 
 def _get_pool_id(self, parsed_args):
-    return neutronV20.find_resourceid_by_name_or_id(
-         self.get_client(), 'pool', parsed_args.pool_id, 'lbaas_pool')
+    return neutronV20.find_resourceid_by_name_or_id(self.get_client(), 'pool',
+                                                    parsed_args.pool_id,
+                                                    'lbaas_pool')
 
 
 class ListMember(neutronV20.ListCommand):
@@ -61,7 +63,6 @@ class ShowMember(neutronV20.ShowCommand):
     log = logging.getLogger(__name__ + '.ShowMember')
     add_known_arguments = _add_pool_id_arg
     get_data = _set_parent_id
-    #allow_names = False
 
 
 class CreateMember(neutronV20.CreateCommand):
@@ -84,7 +85,6 @@ class CreateMember(neutronV20.CreateCommand):
             help=_('Weight of member in the pool (default:1, [0..256])'))
         parser.add_argument(
             '--subnet-id',
-            required=True,
             help=_('Subnet ID for the member'))
         parser.add_argument(
             '--address',
@@ -118,9 +118,6 @@ class UpdateMember(neutronV20.UpdateCommand):
     resource = 'member'
     shadow_resource = 'lbaas_member'
     log = logging.getLogger(__name__ + '.UpdateMember')
-    #add_known_arguments = _add_pool_id_arg
-    #get_data = _set_parent_id
-    allow_names = True
 
     def add_known_arguments(self, parser):
         parser.add_argument(
@@ -147,7 +144,6 @@ class UpdateMember(neutronV20.UpdateCommand):
         return body
 
 
-
 class DeleteMember(neutronV20.DeleteCommand):
     """Delete a given member."""
 
@@ -156,4 +152,3 @@ class DeleteMember(neutronV20.DeleteCommand):
     log = logging.getLogger(__name__ + '.DeleteMember')
     add_known_arguments = _add_pool_id_arg
     get_data = _set_parent_id
-    allow_names = False
