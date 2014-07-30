@@ -201,7 +201,8 @@ class CLITestV20Base(base.BaseTestCase):
     def _test_create_resource(self, resource, cmd, name, myid, args,
                               position_names, position_values,
                               tenant_id=None, tags=None, admin_state_up=True,
-                              extra_body=None, cmd_resource=None, **kwargs):
+                              extra_body=None, cmd_resource=None,
+                              parent_id=None, **kwargs):
         self.mox.StubOutWithMock(cmd, "get_client")
         self.mox.StubOutWithMock(self.client.httpclient, "request")
         cmd.get_client().MultipleTimes().AndReturn(self.client)
@@ -238,6 +239,8 @@ class CLITestV20Base(base.BaseTestCase):
         resource_plural = neutronV2_0._get_resource_plural(cmd_resource,
                                                            self.client)
         path = getattr(self.client, resource_plural + "_path")
+        if parent_id:
+            path = path % parent_id
         # Work around for LP #1217791. XML deserializer called from
         # MyComparator does not decodes XML string correctly.
         if self.format == 'json':
@@ -288,7 +291,8 @@ class CLITestV20Base(base.BaseTestCase):
     def _test_list_resources(self, resources, cmd, detail=False, tags=[],
                              fields_1=[], fields_2=[], page_size=None,
                              sort_key=[], sort_dir=[], response_contents=None,
-                             base_args=None, path=None, cmd_resources=None):
+                             base_args=None, path=None, cmd_resources=None,
+                             parent_id=None):
         self.mox.StubOutWithMock(cmd, "get_client")
         self.mox.StubOutWithMock(self.client.httpclient, "request")
         cmd.get_client().MultipleTimes().AndReturn(self.client)
@@ -366,6 +370,8 @@ class CLITestV20Base(base.BaseTestCase):
                 query += 'sort_dir=%s' % dir
         if path is None:
             path = getattr(self.client, cmd_resources + "_path")
+        if parent_id:
+            path = path % parent_id
         self.client.httpclient.request(
             MyUrlComparator(end_url(path, query, format=self.format),
                             self.client),
@@ -384,7 +390,9 @@ class CLITestV20Base(base.BaseTestCase):
         return _str
 
     def _test_list_resources_with_pagination(self, resources, cmd,
-                                             cmd_resources=None):
+                                             base_args=None,
+                                             cmd_resources=None,
+                                             parent_id=None):
         self.mox.StubOutWithMock(cmd, "get_client")
         self.mox.StubOutWithMock(self.client.httpclient, "request")
         cmd.get_client().MultipleTimes().AndReturn(self.client)
@@ -392,6 +400,8 @@ class CLITestV20Base(base.BaseTestCase):
             cmd_resources = resources
 
         path = getattr(self.client, cmd_resources + "_path")
+        if parent_id:
+            path = path % parent_id
         fake_query = "marker=myid2&limit=2"
         reses1 = {resources: [{'id': 'myid1', },
                               {'id': 'myid2', }],
@@ -414,13 +424,14 @@ class CLITestV20Base(base.BaseTestCase):
                 'X-Auth-Token', TOKEN)).AndReturn((MyResp(200), resstr2))
         self.mox.ReplayAll()
         cmd_parser = cmd.get_parser("list_" + cmd_resources)
-        args = ['--request-format', self.format]
+        args = base_args if base_args is not None else []
+        args.extend(['--request-format', self.format])
         shell.run_command(cmd, cmd_parser, args)
         self.mox.VerifyAll()
         self.mox.UnsetStubs()
 
     def _test_update_resource(self, resource, cmd, myid, args, extrafields,
-                              cmd_resource=None):
+                              cmd_resource=None, parent_id=None):
         self.mox.StubOutWithMock(cmd, "get_client")
         self.mox.StubOutWithMock(self.client.httpclient, "request")
         cmd.get_client().MultipleTimes().AndReturn(self.client)
@@ -429,6 +440,10 @@ class CLITestV20Base(base.BaseTestCase):
 
         body = {resource: extrafields}
         path = getattr(self.client, cmd_resource + "_path")
+        if parent_id:
+            path = path % (parent_id, myid)
+        else:
+            path = path % myid
         self.client.format = self.format
         # Work around for LP #1217791. XML deserializer called from
         # MyComparator does not decodes XML string correctly.
@@ -437,7 +452,7 @@ class CLITestV20Base(base.BaseTestCase):
         else:
             mox_body = self.client.serialize(body)
         self.client.httpclient.request(
-            MyUrlComparator(end_url(path % myid, format=self.format),
+            MyUrlComparator(end_url(path, format=self.format),
                             self.client),
             'PUT',
             body=mox_body,
@@ -453,7 +468,7 @@ class CLITestV20Base(base.BaseTestCase):
         self.assertIn(myid, _str)
 
     def _test_show_resource(self, resource, cmd, myid, args, fields=[],
-                            cmd_resource=None):
+                            cmd_resource=None, parent_id=None):
         self.mox.StubOutWithMock(cmd, "get_client")
         self.mox.StubOutWithMock(self.client.httpclient, "request")
         cmd.get_client().MultipleTimes().AndReturn(self.client)
@@ -467,8 +482,12 @@ class CLITestV20Base(base.BaseTestCase):
         self.client.format = self.format
         resstr = self.client.serialize(expected_res)
         path = getattr(self.client, cmd_resource + "_path")
+        if parent_id:
+            path = path % (parent_id, myid)
+        else:
+            path = path % myid
         self.client.httpclient.request(
-            end_url(path % myid, query, format=self.format), 'GET',
+            end_url(path, query, format=self.format), 'GET',
             body=None,
             headers=mox.ContainsKeyValue(
                 'X-Auth-Token', TOKEN)).AndReturn((MyResp(200), resstr))
@@ -483,15 +502,19 @@ class CLITestV20Base(base.BaseTestCase):
         self.assertIn('myname', _str)
 
     def _test_delete_resource(self, resource, cmd, myid, args,
-                              cmd_resource=None):
+                              cmd_resource=None, parent_id=None):
         self.mox.StubOutWithMock(cmd, "get_client")
         self.mox.StubOutWithMock(self.client.httpclient, "request")
         cmd.get_client().MultipleTimes().AndReturn(self.client)
         if not cmd_resource:
             cmd_resource = resource
         path = getattr(self.client, cmd_resource + "_path")
+        if parent_id:
+            path = path % (parent_id, myid)
+        else:
+            path = path % (myid)
         self.client.httpclient.request(
-            end_url(path % myid, format=self.format), 'DELETE',
+            end_url(path, format=self.format), 'DELETE',
             body=None,
             headers=mox.ContainsKeyValue(
                 'X-Auth-Token', TOKEN)).AndReturn((MyResp(204), None))

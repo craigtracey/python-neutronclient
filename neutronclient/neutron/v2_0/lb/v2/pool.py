@@ -53,6 +53,8 @@ class ShowPool(neutronV20.ShowCommand):
     log = logging.getLogger(__name__ + '.ShowPool')
 
     def cleanup_data(self, data):
+        if 'members' not in data['pool']:
+            return []
         member_info = []
         for member in data['pool']['members']:
             member_info.append(member['id'])

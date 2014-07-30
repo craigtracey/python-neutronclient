@@ -119,5 +119,5 @@ class DeleteHealthMonitor(neutronV20.DeleteCommand):
     """Delete a given healthmonitor."""
 
     resource = 'healthmonitor'
-    shadow_resource = 'lbaas_health_monitor'
+    shadow_resource = 'lbaas_healthmonitor'
     log = logging.getLogger(__name__ + '.DeleteHealthMonitor')

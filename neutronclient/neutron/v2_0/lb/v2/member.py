@@ -28,7 +28,12 @@ def _add_pool_id_arg(self, parser):
         help=_('ID of the member pool.'))
 
 
-def _set_parent_id(self, parsed_args):
+def _set_parent_id_run(self, parsed_args):
+    self.parent_id = _get_pool_id(self, parsed_args)
+    return super(self.__class__, self).run(parsed_args)
+
+
+def _set_parent_id_get_data(self, parsed_args):
     self.parent_id = _get_pool_id(self, parsed_args)
     return super(self.__class__, self).get_data(parsed_args)
 
@@ -52,7 +57,7 @@ class ListMember(neutronV20.ListCommand):
     pagination_support = True
     sorting_support = True
     add_known_arguments = _add_pool_id_arg
-    get_data = _set_parent_id
+    get_data = _set_parent_id_get_data
 
 
 class ShowMember(neutronV20.ShowCommand):
@@ -62,7 +67,7 @@ class ShowMember(neutronV20.ShowCommand):
     shadow_resource = 'lbaas_member'
     log = logging.getLogger(__name__ + '.ShowMember')
     add_known_arguments = _add_pool_id_arg
-    get_data = _set_parent_id
+    get_data = _set_parent_id_get_data
 
 
 class CreateMember(neutronV20.CreateCommand):
@@ -135,12 +140,10 @@ class UpdateMember(neutronV20.UpdateCommand):
         _pool_id = _get_pool_id(self, parsed_args)
         self.parent_id = _pool_id
         body = {
-            self.resource: {
-                'admin_state_up': parsed_args.admin_state,
-            },
+            self.resource: {}
         }
         neutronV20.update_dict(parsed_args, body[self.resource],
-                               ['weight'])
+                               ['admin_state_up', 'weight'])
         return body
 
 
@@ -151,4 +154,4 @@ class DeleteMember(neutronV20.DeleteCommand):
     shadow_resource = 'lbaas_member'
     log = logging.getLogger(__name__ + '.DeleteMember')
     add_known_arguments = _add_pool_id_arg
-    get_data = _set_parent_id
+    run = _set_parent_id_run
