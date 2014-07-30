@@ -110,7 +110,7 @@ class CreatePool(neutronV20.CreateCommand):
             },
         }
         neutronV20.update_dict(parsed_args, body[self.resource],
-                               ['description', 'healthmonitor_id'
+                               ['description', 'healthmonitor_id',
                                 'session_persistence'])
         return body
 
